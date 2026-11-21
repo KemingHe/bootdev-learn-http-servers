@@ -1,7 +1,20 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"net/http"
+)
+
+type apiHandler struct{}
 
 func main() {
-	fmt.Println("Hello, World!")
+	const sPrt = "8080"
+	sMux := http.NewServeMux()
+	serv := &http.Server{
+		Addr:    ":" + sPrt,
+		Handler: sMux,
+	}
+
+	log.Printf("Serving on port %s\n", sPrt)
+	log.Fatal(serv.ListenAndServe()) // Start server
 }
