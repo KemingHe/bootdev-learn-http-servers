@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-func readinessHandleFunc(w http.ResponseWriter, req *http.Request) {
+func handleReadiness(w http.ResponseWriter, req *http.Request) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(http.StatusText(http.StatusOK)))
@@ -16,7 +16,7 @@ func main() {
 	const port = "8080"
 
 	sMux := http.NewServeMux()
-	sMux.HandleFunc("/healthz", readinessHandleFunc)
+	sMux.HandleFunc("/healthz", handleReadiness)
 	sMux.Handle("/app/", http.StripPrefix( // Serve root files from /app/ path
 		"/app",
 		http.FileServer(http.Dir(fileRoot)),
