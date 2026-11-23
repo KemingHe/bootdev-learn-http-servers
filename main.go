@@ -11,22 +11,24 @@ func handleReadiness(w http.ResponseWriter, req *http.Request) {
 	w.Write([]byte(http.StatusText(http.StatusOK)))
 }
 
+func handleFileServe(fsPref, fsRoot string) http.Handler {
+	return http.StripPrefix("/app", http.FileServer(http.Dir(fsRoot)))
+}
+
 func main() {
-	const fileRoot = "."
+	const fsPref = "/app"
+	const fsRoot = "."
 	const port = "8080"
 
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/healthz", handleReadiness)
-	sMux.Handle("/app/", http.StripPrefix( // Serve root files from /app/ path
-		"/app",
-		http.FileServer(http.Dir(fileRoot)),
-	))
+	sMux.Handle(fsPref+"/", handleFileServe(fsPref, fsRoot))
 
 	serv := &http.Server{
 		Addr:    ":" + port,
 		Handler: sMux,
 	}
 
-	log.Printf("Serving files from %s on port %s\n", fileRoot, port)
+	log.Printf("Serving files from %s on port %s\n", fsRoot, port)
 	log.Fatal(serv.ListenAndServe()) // Start server
 }
