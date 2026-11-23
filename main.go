@@ -48,7 +48,7 @@ func (cfg *apiConfig) handleMetricsReset(
 	w.Write([]byte(data))
 }
 
-func handleFileServe(fsPref, fsRoot string) http.Handler {
+func fileServeHandler(fsPref, fsRoot string) http.Handler {
 	return http.StripPrefix("/app", http.FileServer(http.Dir(fsRoot)))
 }
 
@@ -57,8 +57,7 @@ func main() {
 	const fsRoot = "."
 	const port = "8080"
 
-	var count atomic.Int32 // Init to zero val of 0
-	apiCfg := apiConfig{fileserverHits: count}
+	apiCfg := apiConfig{fileserverHits: atomic.Int32{}}
 
 	sMux := http.NewServeMux()
 	sMux.HandleFunc("/healthz", handleReadiness)
@@ -66,7 +65,7 @@ func main() {
 	sMux.HandleFunc("/reset", apiCfg.handleMetricsReset)
 	sMux.Handle(
 		fsPref+"/",
-		apiCfg.middelwareMitricsInc(handleFileServe(fsPref, fsRoot)),
+		apiCfg.middelwareMitricsInc(fileServeHandler(fsPref, fsRoot)),
 	)
 
 	serv := &http.Server{
