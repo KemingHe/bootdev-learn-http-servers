@@ -27,6 +27,6 @@ func main() {
 		Handler: sMux,
 	}
 
-	log.Printf("Serving files from %s on port %s\n", fsRoot, port)
+	log.Printf("Serving files from %s on port %s", fsRoot, port)
 	log.Fatal(serv.ListenAndServe()) // Start server
 }
