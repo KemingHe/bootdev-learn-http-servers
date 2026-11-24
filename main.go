@@ -7,26 +7,31 @@ import (
 )
 
 func main() {
-	const fsPref = "/app"
-	const fsRoot = "."
+	const contentPref = "/app"
+	const contentRoot = "."
+	const apiPref = "/api"
 	const port = "8080"
 
 	apiCfg := apiConfig{fileserverHits: atomic.Int32{}}
 
 	sMux := http.NewServeMux()
-	sMux.HandleFunc("GET /healthz", handleReadiness)
-	sMux.HandleFunc("GET /metrics", apiCfg.handleMetricsLookup)
-	sMux.HandleFunc("POST /reset", apiCfg.handleMetricsReset)
+
+	// Content
 	sMux.Handle(
-		fsPref+"/",
-		apiCfg.middelwareMitricsInc(fileServeHandler(fsPref, fsRoot)),
+		contentPref+"/",
+		apiCfg.middlewareMitricsInc(fileServeHandler(contentPref, contentRoot)),
 	)
+
+	// API
+	sMux.HandleFunc("GET "+apiPref+"/healthz", handleReadiness)
+	sMux.HandleFunc("GET "+apiPref+"/metrics", apiCfg.handleMetricsLookup)
+	sMux.HandleFunc("POST "+apiPref+"/reset", apiCfg.handleMetricsReset)
 
 	serv := &http.Server{
 		Addr:    ":" + port,
 		Handler: sMux,
 	}
 
-	log.Printf("Serving files from %s on port %s", fsRoot, port)
+	log.Printf("Serving files from %s on port %s", contentRoot, port)
 	log.Fatal(serv.ListenAndServe()) // Start server
 }

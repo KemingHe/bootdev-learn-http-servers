@@ -11,7 +11,7 @@ type apiConfig struct {
 	fileserverHits atomic.Int32
 }
 
-func (cfg *apiConfig) middelwareMitricsInc(next http.Handler) http.Handler {
+func (cfg *apiConfig) middlewareMitricsInc(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cfg.fileserverHits.Add(1)
 		log.Printf(
