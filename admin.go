@@ -47,9 +47,5 @@ func (cfg *apiConfig) handleMetricsReset(
 	w.WriteHeader(http.StatusOK)
 	cfg.fileserverHits.Store(0)
 	log.Printf("Reset fileserverHits to %d", cfg.fileserverHits.Load())
-	data := fmt.Sprintf(
-		"Reset Successful!\nHits: %d",
-		cfg.fileserverHits.Load(),
-	)
-	w.Write([]byte(data))
+	w.Write([]byte(http.StatusText(http.StatusOK)))
 }

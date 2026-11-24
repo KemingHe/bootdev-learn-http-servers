@@ -29,6 +29,7 @@ func main() {
 
 	// API
 	sMux.HandleFunc("GET "+apiPref+"/healthz", handleReadiness)
+	sMux.HandleFunc("POST "+apiPref+"/validate_chirp", handleValidation)
 
 	serv := &http.Server{
 		Addr:    ":" + port,
