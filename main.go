@@ -9,6 +9,7 @@ import (
 func main() {
 	const contentPref = "/app"
 	const contentRoot = "."
+	const adminPref = "/admin"
 	const apiPref = "/api"
 	const port = "8080"
 
@@ -22,10 +23,12 @@ func main() {
 		apiCfg.middlewareMitricsInc(fileServeHandler(contentPref, contentRoot)),
 	)
 
+	// Admin
+	sMux.HandleFunc("GET "+adminPref+"/metrics", apiCfg.handleMetricsLookup)
+	sMux.HandleFunc("POST "+adminPref+"/reset", apiCfg.handleMetricsReset)
+
 	// API
 	sMux.HandleFunc("GET "+apiPref+"/healthz", handleReadiness)
-	sMux.HandleFunc("GET "+apiPref+"/metrics", apiCfg.handleMetricsLookup)
-	sMux.HandleFunc("POST "+apiPref+"/reset", apiCfg.handleMetricsReset)
 
 	serv := &http.Server{
 		Addr:    ":" + port,
