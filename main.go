@@ -14,9 +14,9 @@ func main() {
 	apiCfg := apiConfig{fileserverHits: atomic.Int32{}}
 
 	sMux := http.NewServeMux()
-	sMux.HandleFunc("/healthz", handleReadiness)
-	sMux.HandleFunc("/metrics", apiCfg.handleMetricsLookup)
-	sMux.HandleFunc("/reset", apiCfg.handleMetricsReset)
+	sMux.HandleFunc("GET /healthz", handleReadiness)
+	sMux.HandleFunc("GET /metrics", apiCfg.handleMetricsLookup)
+	sMux.HandleFunc("POST /reset", apiCfg.handleMetricsReset)
 	sMux.Handle(
 		fsPref+"/",
 		apiCfg.middelwareMitricsInc(fileServeHandler(fsPref, fsRoot)),
