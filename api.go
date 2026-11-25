@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 )
 
 func handleReadiness(w http.ResponseWriter, req *http.Request) {
@@ -20,8 +21,8 @@ type errorRes struct {
 	Error string `json:"error"`
 }
 
-type validRes struct {
-	Valid bool `json:"valid"`
+type cleanedRes struct {
+	CleanedBody string `json:"cleaned_body"`
 }
 
 func writeJSONRes(
@@ -40,7 +41,30 @@ func writeJSONRes(
 	}
 }
 
+func cleanAndCount(body string) (string, int) {
+	badWords := map[string]struct{}{
+		"kerfuffle": {},
+		"sharbert":  {},
+		"fornax":    {},
+	}
+	const mask = "****"
+	const sep = " "
+	words := strings.Split(body, sep)
+	cleaned := []string{}
+	count := 0
+	for _, word := range words {
+		if _, ok := badWords[strings.ToLower(word)]; ok {
+			cleaned = append(cleaned, mask)
+			count += 1
+		} else {
+			cleaned = append(cleaned, word)
+		}
+	}
+	return strings.Join(cleaned, sep), count
+}
+
 func handleValidation(w http.ResponseWriter, req *http.Request) {
+	// Step 1. Validate request JSON shape
 	decoder := json.NewDecoder(req.Body)
 	vr := validReq{}
 	if err := decoder.Decode(&vr); err != nil {
@@ -49,23 +73,27 @@ func handleValidation(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	const maxBodyLen = 140
+	// Step 2. Check request body within max length
+	const maxLen = 140
 	bodyLen := len(vr.Body)
-	if bodyLen > maxBodyLen {
+	if bodyLen > maxLen {
 		log.Printf(
-			"Received invalid chirp body of len %d, exceeding maxBodyLen of %d",
+			"Received invalid bodyLen %d > maxLen %d",
 			bodyLen,
-			maxBodyLen,
+			maxLen,
 		)
 		writeJSONRes(w, http.StatusBadRequest, errorRes{Error: "Chirp is too long"})
 		return
 	}
+	// Onwards, bodyLen <= maxLen
 
-	// Onwards, bodyLen <= maxBodyLen
+	// Step 3. Detect and sensor bad words
+	cleanedBody, count := cleanAndCount(vr.Body)
 	log.Printf(
-		"Received valid chirp body of len %d, within maxBodyLen of %d",
+		"Received valid bodyLen %d <= maxLen %d; sensored %d bad word(s)",
 		bodyLen,
-		maxBodyLen,
+		maxLen,
+		count,
 	)
-	writeJSONRes(w, http.StatusOK, validRes{Valid: true})
+	writeJSONRes(w, http.StatusOK, cleanedRes{CleanedBody: cleanedBody})
 }
